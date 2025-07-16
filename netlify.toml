@@ -2,24 +2,19 @@
   # Build command for Next.js
   command = "cd frontend && npm install && npm run build"
 
-  # Publish directory (Next.js static export)
-  publish = "frontend/out"
-
   # Base directory
   base = "/"
 
 [build.environment]
   # Node.js version
   NODE_VERSION = "18"
-  
+
   # Next.js specific
   NEXT_TELEMETRY_DISABLED = "1"
 
-# Redirect rules for Next.js SPA routing
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# Use Netlify's Next.js plugin
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
 
 # Headers for security and performance
 [[headers]]
