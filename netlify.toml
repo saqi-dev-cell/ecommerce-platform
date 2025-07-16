@@ -2,6 +2,9 @@
   # Build command for Next.js
   command = "cd frontend && npm install && npm run build"
 
+  # Publish directory for Next.js with Netlify plugin
+  publish = "frontend/.next"
+
   # Base directory
   base = "/"
 
