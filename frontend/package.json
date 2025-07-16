@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack --port 3001",
-    "build": "SKIP_ENV_VALIDATION=true next build",
+    "build": "next build",
     "build:original": "next build",
     "export": "next export",
-    "build:netlify": "SKIP_ENV_VALIDATION=true next build && next export",
+    "build:netlify": "next build",
     "start": "next start --port 3001",
     "lint": "next lint",
     "lint:fix": "next lint --fix"
