@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Products with Images</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .product { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 8px; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        .status { margin: 10px 0; padding: 10px; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .loading { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        img { max-width: 100px; height: 100px; object-fit: cover; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>Add Products with Images</h1>
+    <p>This will add sample products with placeholder images to your store.</p>
+    
+    <button onclick="clearAllProducts()">Clear All Products First</button>
+    <button onclick="addAllProducts()">Add Sample Products</button>
+    <button onclick="testConnection()">Test API Connection</button>
+    
+    <div id="status"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        
+        // Simple colored placeholder images as base64
+        const placeholderImages = {
+            headphones: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDQwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjNjM2NkYxIi8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTgwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSIgZm9udC1zaXplPSIyNCIgZm9udC1mYW1pbHk9IkFyaWFsIj7wn46nPC90ZXh0Pgo8dGV4dCB4PSIyMDAiIHk9IjIyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMTYiIGZvbnQtZmFtaWx5PSJBcmlhbCI+SGVhZHBob25lczwvdGV4dD4KPC9zdmc+',
+            coffee: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDQwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjOEI0NTEzIi8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTgwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSIgZm9udC1zaXplPSIyNCIgZm9udC1mYW1pbHk9IkFyaWFsIj7imJU8L3RleHQ+Cjx0ZXh0IHg9IjIwMCIgeT0iMjIwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSIgZm9udC1zaXplPSIxNiIgZm9udC1mYW1pbHk9IkFyaWFsIj5Db2ZmZWU8L3RleHQ+Cjwvc3ZnPg==',
+            tea: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDQwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjMTBCOTgxIi8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTgwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSIgZm9udC1zaXplPSIyNCIgZm9udC1mYW1pbHk9IkFyaWFsIj7wn42VPC90ZXh0Pgo8dGV4dCB4PSIyMDAiIHk9IjIyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMTYiIGZvbnQtZmFtaWx5PSJBcmlhbCI+VGVhPC90ZXh0Pgo8L3N2Zz4=',
+            book: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDQwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjRUY0NDQ0Ii8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTgwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSIgZm9udC1zaXplPSIyNCIgZm9udC1mYW1pbHk9IkFyaWFsIj7wn5OSPC90ZXh0Pgo8dGV4dCB4PSIyMDAiIHk9IjIyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMTYiIGZvbnQtZmFtaWx5PSJBcmlhbCI+Qm9vazwvdGV4dD4KPC9zdmc+'
+        };
+        
+        const sampleProducts = [
+            {
+                name: 'KEFGOIWEHPF',
+                description: 'Premium wireless headphones with noise cancellation and superior sound quality',
+                price: 373.00,
+                category: 'Electronics',
+                subcategory: 'Audio',
+                brand: 'TechBrand',
+                sku: 'KEFG-001',
+                stock: 50,
+                lowStockThreshold: 10,
+                weight: 0.5,
+                tags: ['wireless', 'headphones', 'premium'],
+                features: ['Noise Cancellation', 'Wireless Connectivity', 'Long Battery Life', '40mm Drivers'],
+                images: [{
+                    url: placeholderImages.headphones,
+                    alt: 'Premium Wireless Headphones'
+                }],
+                isActive: true,
+                isFeatured: true
+            },
+            {
+                name: 'PREMIUM COFFEE BEANS',
+                description: 'Artisan roasted coffee beans from premium farms around the world',
+                price: 24.99,
+                category: 'Food',
+                subcategory: 'Coffee',
+                brand: 'CoffeeMaster',
+                sku: 'COFFEE-001',
+                stock: 100,
+                lowStockThreshold: 20,
+                weight: 1.0,
+                tags: ['coffee', 'premium', 'organic'],
+                features: ['Single Origin', 'Medium Roast', 'Fair Trade', 'Freshly Ground'],
+                images: [{
+                    url: placeholderImages.coffee,
+                    alt: 'Premium Coffee Beans'
+                }],
+                isActive: true,
+                isFeatured: true
+            },
+            {
+                name: 'ARTISAN TEA COLLECTION',
+                description: 'Curated collection of premium teas from around the world',
+                price: 59.99,
+                category: 'Food',
+                subcategory: 'Tea',
+                brand: 'TeaMaster',
+                sku: 'TEA-001',
+                stock: 75,
+                lowStockThreshold: 15,
+                weight: 0.8,
+                tags: ['tea', 'collection', 'artisan'],
+                features: ['5 Different Varieties', 'Premium Quality', 'Gift Box Included', 'Organic'],
+                images: [{
+                    url: placeholderImages.tea,
+                    alt: 'Artisan Tea Collection'
+                }],
+                isActive: true,
+                isFeatured: true
+            },
+            {
+                name: 'THE ART OF PROGRAMMING',
+                description: 'Comprehensive guide to modern programming techniques and best practices',
+                price: 49.99,
+                category: 'Books',
+                subcategory: 'Technology',
+                brand: 'TechBooks',
+                sku: 'BOOK-001',
+                stock: 30,
+                lowStockThreshold: 5,
+                weight: 0.6,
+                tags: ['programming', 'book', 'education'],
+                features: ['500+ Pages', 'Code Examples', 'Digital Access Included', 'Expert Authors'],
+                images: [{
+                    url: placeholderImages.book,
+                    alt: 'Programming Book'
+                }],
+                isActive: true,
+                isFeatured: true
+            }
+        ];
+
+        function updateStatus(message, type = 'loading') {
+            const statusDiv = document.getElementById('status');
+            const statusClass = type === 'success' ? 'success' : type === 'error' ? 'error' : 'loading';
+            statusDiv.innerHTML += `<div class="status ${statusClass}">${message}</div>`;
+            statusDiv.scrollTop = statusDiv.scrollHeight;
+        }
+
+        async function testConnection() {
+            document.getElementById('status').innerHTML = '';
+            updateStatus('Testing API connection...');
+            
+            try {
+                const response = await fetch(`${API_BASE}/products?limit=1`);
+                if (response.ok) {
+                    updateStatus('✅ API connection successful!', 'success');
+                } else {
+                    updateStatus(`❌ API connection failed: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                updateStatus(`❌ API connection error: ${error.message}`, 'error');
+            }
+        }
+
+        async function clearAllProducts() {
+            document.getElementById('status').innerHTML = '';
+            updateStatus('Clearing all existing products...');
+            
+            try {
+                // Get all products first
+                const response = await fetch(`${API_BASE}/products?limit=1000`);
+                if (!response.ok) throw new Error(`Failed to fetch products: ${response.status}`);
+                
+                const data = await response.json();
+                const products = data.data || [];
+                
+                updateStatus(`Found ${products.length} products to delete`);
+                
+                // Delete each product
+                for (const product of products) {
+                    try {
+                        const deleteResponse = await fetch(`${API_BASE}/products/${product._id}`, {
+                            method: 'DELETE'
+                        });
+                        if (deleteResponse.ok) {
+                            updateStatus(`✅ Deleted: ${product.name}`, 'success');
+                        } else {
+                            updateStatus(`❌ Failed to delete: ${product.name}`, 'error');
+                        }
+                    } catch (error) {
+                        updateStatus(`❌ Error deleting ${product.name}: ${error.message}`, 'error');
+                    }
+                }
+                
+                updateStatus('🎉 All products cleared!', 'success');
+            } catch (error) {
+                updateStatus(`❌ Error clearing products: ${error.message}`, 'error');
+            }
+        }
+
+        async function addProduct(product) {
+            try {
+                const response = await fetch(`${API_BASE}/products`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(product)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorData}`);
+                }
+
+                const result = await response.json();
+                return { success: true, data: result };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function addAllProducts() {
+            document.getElementById('status').innerHTML = '';
+            updateStatus('Starting to add products with images...');
+
+            for (let i = 0; i < sampleProducts.length; i++) {
+                const product = sampleProducts[i];
+                updateStatus(`Adding product ${i + 1}/${sampleProducts.length}: ${product.name}`);
+                
+                const result = await addProduct(product);
+                
+                if (result.success) {
+                    updateStatus(`✅ Successfully added: ${product.name}`, 'success');
+                } else {
+                    updateStatus(`❌ Failed to add ${product.name}: ${result.error}`, 'error');
+                }
+                
+                // Small delay to avoid overwhelming the server
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+
+            updateStatus('🎉 Finished adding all products! Go check your website now!', 'success');
+        }
+    </script>
+</body>
+</html>
