@@ -17,7 +17,10 @@ const app = express();
 app.set('trust proxy', 1);
 
 // Connect to MongoDB
-connectDB();
+connectDB().catch(err => {
+  console.error('MongoDB connection failed:', err);
+  process.exit(1);
+});
 
 // Security middleware
 app.use(helmet());
@@ -160,12 +163,35 @@ app.use('*', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
   console.log(`Environment variables check:`);
   console.log(`- NODE_ENV: ${process.env.NODE_ENV}`);
   console.log(`- PORT: ${process.env.PORT}`);
   console.log(`- MONGODB_URI: ${process.env.MONGODB_URI ? 'configured' : 'not configured'}`);
+});
+
+// Handle server errors
+server.on('error', (err) => {
+  console.error('Server error:', err);
+  process.exit(1);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    console.log('Process terminated');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received, shutting down gracefully');
+  server.close(() => {
+    console.log('Process terminated');
+    process.exit(0);
+  });
 });
 
 module.exports = app;
