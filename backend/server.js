@@ -70,6 +70,26 @@ app.get('/api/test-db', async (req, res) => {
       status: 'OK',
       database: states[dbState],
       mongoUri: process.env.MONGODB_URI ? 'configured' : 'not configured',
+      nodeEnv: process.env.NODE_ENV || 'not set',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Simple products test route
+app.get('/api/test-products', async (req, res) => {
+  try {
+    const Product = require('./models/Product');
+    const count = await Product.countDocuments();
+    res.status(200).json({
+      status: 'OK',
+      productCount: count,
       timestamp: new Date().toISOString()
     });
   } catch (error) {
@@ -136,8 +156,12 @@ app.use('*', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+  console.log(`Environment variables check:`);
+  console.log(`- NODE_ENV: ${process.env.NODE_ENV}`);
+  console.log(`- PORT: ${process.env.PORT}`);
+  console.log(`- MONGODB_URI: ${process.env.MONGODB_URI ? 'configured' : 'not configured'}`);
 });
 
 module.exports = app;
