@@ -159,15 +159,22 @@ The platform features a Nike-inspired design with:
 
 ## 🚀 Deployment
 
+### Quick Deploy to Netlify
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/saqi-dev-cell/ecommerce-platform)
+
+### Frontend Deployment (Netlify)
+1. **Automatic:** Click the "Deploy to Netlify" button above
+2. **Manual:**
+   - Connect your GitHub repository to Netlify
+   - Build command: `cd frontend && npm install && npm run build`
+   - Publish directory: `frontend/out`
+   - Set environment variable: `NEXT_PUBLIC_API_URL`
+
 ### Backend Deployment
 1. Set production environment variables
-2. Deploy to platforms like Heroku, Railway, or DigitalOcean
+2. Deploy to platforms like Railway, Heroku, or DigitalOcean
 3. Configure MongoDB Atlas for production database
-
-### Frontend Deployment
-1. Build the application: `npm run build`
-2. Deploy to Vercel, Netlify, or similar platforms
-3. Update API URL in environment variables
+4. Update CORS settings for your frontend domain
 
 ## 🤝 Contributing
 

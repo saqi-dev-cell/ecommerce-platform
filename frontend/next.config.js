@@ -15,7 +15,7 @@ const nextConfig = {
   },
   // Handle environment variables
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://your-railway-app.railway.app/api',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://ecommerce-platform-production-2cff.up.railway.app/api',
   },
   // Allow builds to complete even with TypeScript/ESLint errors
   eslint: {
