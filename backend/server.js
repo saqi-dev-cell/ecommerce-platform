@@ -186,11 +186,12 @@ app.use('*', (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-  console.log(`Environment variables check:`);
+  console.log(`🚀 E-commerce Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+  console.log(`📊 Environment variables check:`);
   console.log(`- NODE_ENV: ${process.env.NODE_ENV}`);
   console.log(`- PORT: ${process.env.PORT}`);
   console.log(`- MONGODB_URI: ${process.env.MONGODB_URI ? 'configured' : 'not configured'}`);
+  console.log(`✅ Server started successfully!`);
 });
 
 // Handle server errors
