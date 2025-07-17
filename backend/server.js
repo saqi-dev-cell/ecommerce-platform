@@ -5,6 +5,16 @@ const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/database');
 require('dotenv').config();
 
+// Validate required environment variables
+const requiredEnvVars = ['JWT_SECRET'];
+const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+
+if (missingEnvVars.length > 0) {
+  console.error('Missing required environment variables:', missingEnvVars);
+  console.error('Please set these environment variables and restart the server');
+  process.exit(1);
+}
+
 // Import routes
 const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
@@ -16,11 +26,19 @@ const app = express();
 // Trust proxy for Railway deployment
 app.set('trust proxy', 1);
 
-// Connect to MongoDB
-connectDB().catch(err => {
-  console.error('MongoDB connection failed:', err);
-  process.exit(1);
-});
+// Connect to MongoDB with retry logic
+const connectWithRetry = async () => {
+  try {
+    await connectDB();
+    console.log('MongoDB connection successful');
+  } catch (err) {
+    console.error('MongoDB connection failed:', err.message);
+    console.log('Retrying MongoDB connection in 5 seconds...');
+    setTimeout(connectWithRetry, 5000);
+  }
+};
+
+connectWithRetry();
 
 // Security middleware
 app.use(helmet());
@@ -35,10 +53,14 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // CORS configuration
+const corsOrigins = process.env.NODE_ENV === 'production'
+  ? process.env.CORS_ORIGINS === '*'
+    ? true  // Allow all origins
+    : process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : ['*']
+  : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'];
+
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : ['*']
-    : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'],
+  origin: corsOrigins,
   credentials: true
 }));
 
