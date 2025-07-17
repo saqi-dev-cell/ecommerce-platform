@@ -47,11 +47,38 @@ app.use('/api/orders', orderRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'OK', 
+  res.status(200).json({
+    status: 'OK',
     message: 'E-commerce API is running',
     timestamp: new Date().toISOString()
   });
+});
+
+// Database test route
+app.get('/api/test-db', async (req, res) => {
+  try {
+    const mongoose = require('mongoose');
+    const dbState = mongoose.connection.readyState;
+    const states = {
+      0: 'disconnected',
+      1: 'connected',
+      2: 'connecting',
+      3: 'disconnecting'
+    };
+
+    res.status(200).json({
+      status: 'OK',
+      database: states[dbState],
+      mongoUri: process.env.MONGODB_URI ? 'configured' : 'not configured',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 // Error handling middleware
